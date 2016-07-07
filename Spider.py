@@ -8,3 +8,11 @@ class Spider():
     
     def __init__(self):
         pass
+    
+    def Routing(self, url):
+        pass
+    
+    def Run(self):
+        pass
+    
+    
