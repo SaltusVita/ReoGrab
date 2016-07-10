@@ -1,4 +1,5 @@
-from Spider import *
+from Spider import Spider
+from Parser import HtmlPage
 
 class AliExpress(Spider):
     
@@ -16,29 +17,36 @@ class AliExpress(Spider):
                 'name': 'AllCategory',
                 're': '[^a]+?aliexpress.com/all-wholesale-products.html'
             },
+            {
+                'name': 'Turnik',
+                're': '[^d]+?dsk-doma.ru.+'
+            }
         ]
     
     def Run(self):
         url = 'http://ru.aliexpress.com/af/category/202001195.html'
+        url = 'http://dsk-doma.ru/'
         route = self.Routing(url)
-        getattr(self, route['name'])()
-        #page = self.Download(url)
-        print(route)
+        html = self.Download(url)
+        #print(type(html))
+        page = HtmlPage(html)
+        # Call function for parse page
+        getattr(self, route['name'])(page)
     
     def Category(self, page):
-        urls = page.find_all('.list-item a.product').href()
-        self.add_urls(urls, page.url)
+        urls = page.Find('.list-item a.product').Href()
+        self.add_urls(urls, page.Url)
     
     def Item(self, page):
-        item = str()
-        item.name = page.find('h1.product-name').text()
-        item.price = page.find('#j-sku-price').text()
-        item.img = page.find('.ui-image-viewer-thumb-frame img').src()
-        item.category = page.category 
+        item = {}
+        item['name'] = page.Find('h1.product-name').Text()
+        item['price'] = page.Find('#j-sku-price').Text()
+        item['img'] = page.Find('.ui-image-viewer-thumb-frame img').Src()
+        #item.category = page.Category 
         self.Save(item, 'Items')
     
     def AllCategory(self, page):
-        urls = page.find_all('.cg-main a').href()
+        urls = page.FindAll('.cg-main a').Href()
         self.add_urls(urls, page.url)
         
 

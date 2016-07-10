@@ -22,5 +22,9 @@ class Spider():
     def Download(self, url):
         request = urllib.request.urlopen(url)
         page = request.read()
+        return page
         return page.decode('utf-8')
+    
+    def Save(self, item, category):
+        pass
         
