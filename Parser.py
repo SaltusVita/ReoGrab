@@ -18,7 +18,7 @@ class HtmlItem():
         #elif item_type is HtmlItem:
         #    self = item # TODO: Переделать!
         
-    def Find(self, s:str):
+    def Find(self, s:str, number=0):
         type_find = self.TypeFind(s)
         if type_find == 'xpath':
             result = self._item.xpath(s)

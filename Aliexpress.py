@@ -17,18 +17,12 @@ class AliExpress(Spider):
                 'name': 'AllCategory',
                 're': '[^a]+?aliexpress.com/all-wholesale-products.html'
             },
-            {
-                'name': 'Turnik',
-                're': '[^d]+?dsk-doma.ru.+'
-            }
         ]
     
     def Run(self):
         url = 'http://ru.aliexpress.com/af/category/202001195.html'
-        #url = 'http://dsk-doma.ru/'
         route = self.Routing(url)
         html = self.Download(url)
-        #print(type(html))
         page = HtmlPage(html)
         # Call function for parse page
         getattr(self, route['name'])(page)
