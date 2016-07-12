@@ -15,7 +15,7 @@ class Spider():
     
     def Routing(self, url):
         for route in self._routes:
-            if re.match(route['re'], url) == None:
+            if re.match(route['re'], url) != None:
                 return route
         return None
     

@@ -25,7 +25,7 @@ class AliExpress(Spider):
     
     def Run(self):
         url = 'http://ru.aliexpress.com/af/category/202001195.html'
-        url = 'http://dsk-doma.ru/'
+        #url = 'http://dsk-doma.ru/'
         route = self.Routing(url)
         html = self.Download(url)
         #print(type(html))
@@ -34,14 +34,14 @@ class AliExpress(Spider):
         getattr(self, route['name'])(page)
     
     def Category(self, page):
-        urls = page.Find('.list-item a.product').Href()
-        self.add_urls(urls, page.Url)
+        urls = page.Find('.list-item a.product')
+        #self.add_urls(urls, page.Url)
     
     def Item(self, page):
         item = {}
         item['name'] = page.Find('h1.product-name').Text()
         item['price'] = page.Find('#j-sku-price').Text()
-        item['img'] = page.Find('.ui-image-viewer-thumb-frame img').Src()
+        #item['img'] = page.Find('.ui-image-viewer-thumb-frame img').Src()
         #item.category = page.Category 
         self.Save(item, 'Items')
     
