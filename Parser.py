@@ -4,7 +4,7 @@ Created on 10 июл. 2016 г.
 @author: garet
 '''
 
-import lxml.html as html
+import lxml.html
 
 
 
@@ -12,39 +12,62 @@ class HtmlItem():
     
     def __init__(self, item, base_url=''):
         item_type = type(item)
-        #if item_type is str:
-            #print(item)
-        self._item = html.document_fromstring(item)
-        #elif item_type is HtmlItem:
-        #    self = item # TODO: Переделать!
+        if item_type is str or item_type is bytes:
+            self._item = lxml.html.document_fromstring(item)
+        elif item_type is lxml.html.HtmlElement:
+            self._item = item
+        elif item_type is HtmlItem:
+            self = item # TODO: Переделать!
+        elif item_type == None:
+            self._item = lxml.html.HtmlElement()
         
     def Find(self, s:str, number=0):
         type_find = self.TypeFind(s)
+        result = None
         if type_find == 'xpath':
             result = self._item.xpath(s)
         elif type_find == 'css':
             result = self._item.cssselect(s)
-        print(type(result[0]))
-        print(result)
-        return self
+        if result == None:
+            return HtmlItem(result)
+        if len(result) >= number:
+            return HtmlItem(result.pop())
+        return HtmlItem(result[number])
+        #print(type(result[0]))
+        #print(result)
+        #return self
+        
+    def Text(self, strip=True):
+        result = ''.join(self._item.itertext())
+        if strip:
+            return result.strip()
+        return result
+    
+    def Href(self, strip=True):
+        return self.Attr('href', strip)
+    
+    def Src(self, strip=True):
+        return self.Attr('src', strip)
+    
+    def Attr(self, name, strip=True):
+        result = self._item.get(name)
+        if result == None:
+            return ''
+        if strip:
+            return result.strip()
+        return result
+    
+    def Html(self, pretty=False):
+        return lxml.html.tostring(self._item, pretty, encoding='unicode')
         
     def TypeFind(self, s:str):
         return 'css' # TODO: Доделать тест типа поиска
             
             
 class HtmlPage(HtmlItem):
-    '''
-    classdocs
-    '''
 
     def __init__(self, html):
         super().__init__(html)
-        
-    #def Find(self, attr):
-     #   return self
-    
-    def Text(self, trim=None):
-        return ''
     
     def Src(self, trim=True):
         return ''

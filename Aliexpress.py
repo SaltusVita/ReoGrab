@@ -28,7 +28,8 @@ class AliExpress(Spider):
         getattr(self, route['name'])(page)
     
     def Category(self, page):
-        urls = page.Find('.list-item a.product')
+        urls = page.Find('h1').Html(True)
+        print(urls)
         #self.add_urls(urls, page.Url)
     
     def Item(self, page):
