@@ -8,10 +8,13 @@ import urllib.request
 import queue
 import re
 
+from Parser import HtmlPage
+
+
 class Spider():
     
     def __init__(self):
-        pass
+        self._urls = queue()
     
     def Routing(self, url):
         for route in self._routes:
@@ -27,4 +30,17 @@ class Spider():
     
     def Save(self, item, category):
         pass
-        
+
+    def Run(self):
+        while not self._urls.Empty:
+            url = self._urls.pop()
+            route = self.Routing(url)
+            html = self.Download(url)
+            page = HtmlPage(html)
+            # Call function for parse page
+            getattr(self, route['name'])(page)
+
+    def AddUrls(self, urls):
+        for url in urls:
+            self._urls.put(url)
+
