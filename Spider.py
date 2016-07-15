@@ -46,3 +46,9 @@ class Spider():
         for url in urls:
             self._urls.put(url)
 
+
+class Urls():
+    
+    def __init__(self, urls=None):
+        if urls != None:
+            self.AddUrls(urls)
