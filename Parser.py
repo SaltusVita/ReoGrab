@@ -20,22 +20,26 @@ class HtmlItem():
             self = item # TODO: Переделать!
         elif item_type == None:
             self._item = lxml.html.HtmlElement()
-        
-    def Find(self, s:str, number=0):
+
+    def TypeFind(self, s:str):
+        return 'css' # TODO: Доделать тест типа поиска
+    
+    def FindItem(self, s:str):
         type_find = self.TypeFind(s)
         result = None
         if type_find == 'xpath':
             result = self._item.xpath(s)
         elif type_find == 'css':
             result = self._item.cssselect(s)
+        return result
+
+    def Find(self, s:str, number=0):
+        result = self.FindItems(s)
         if result == None:
             return HtmlItem(result)
         if len(result) >= number:
-            return HtmlItem(result.pop())
-        return HtmlItem(result[number])
-        #print(type(result[0]))
-        #print(result)
-        #return self
+            return HtmlItem(result[number])
+        return HtmlItem(result.pop())
         
     def Text(self, strip=True):
         result = ''.join(self._item.itertext())
@@ -59,15 +63,10 @@ class HtmlItem():
     
     def Html(self, pretty=False):
         return lxml.html.tostring(self._item, pretty, encoding='unicode')
-        
-    def TypeFind(self, s:str):
-        return 'css' # TODO: Доделать тест типа поиска
-            
-            
+
+
+
 class HtmlPage(HtmlItem):
 
     def __init__(self, html):
         super().__init__(html)
-    
-    def Src(self, trim=True):
-        return ''

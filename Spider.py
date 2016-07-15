@@ -14,10 +14,10 @@ from Parser import HtmlPage
 class Spider():
     
     def __init__(self):
-        self._urls = queue()
+        self._urls = queue.Queue()
     
     def Routing(self, url):
-        for route in self._routes:
+        for route in self.routes:
             if re.match(route['re'], url) != None:
                 return route
         return None
@@ -29,11 +29,13 @@ class Spider():
         return page.decode('utf8')
     
     def Save(self, item, category):
-        pass
+        print(item)
 
     def Run(self):
-        while not self._urls.Empty:
-            url = self._urls.pop()
+        if self.start_urls != None:
+            self.AddUrls(self.start_urls)
+        while not self._urls.empty():
+            url = self._urls.get()
             route = self.Routing(url)
             html = self.Download(url)
             page = HtmlPage(html)
