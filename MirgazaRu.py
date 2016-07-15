@@ -18,9 +18,8 @@ class MirazaRu(Spider):
     start_urls = ['http://www.mirgaza.ru/catalog/']
     
     def Catalog(self, page):
-        urls = page.Find('a',101).Text()
+        urls = page.FindAll('.group_list img').Img()
         print(urls)
-        
 
 bot = MirazaRu()
 bot.Run()

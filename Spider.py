@@ -38,10 +38,10 @@ class Spider():
             url = self._urls.get()
             route = self.Routing(url)
             html = self.Download(url)
-            page = HtmlPage(html)
+            page = HtmlPage(html, url)
             # Call function for parse page
             getattr(self, route['name'])(page)
-
+        
     def AddUrls(self, urls):
         for url in urls:
             self._urls.put(url)
