@@ -15,18 +15,19 @@ class Spider():
     
     def __init__(self):
         self._urls = queue.Queue()
+        self._urls_set = set()
     
     def Routing(self, url):
         for route in self.routes:
             if re.match(route['re'], url) != None:
-                return route
+                if 'skip' not in route:
+                    return route
         return None
     
     def Download(self, url):
         request = urllib.request.urlopen(url)
         page = request.read()
-        #return page
-        return page.decode('utf8')
+        return page.decode('utf-8')
     
     def Save(self, item, category):
         print(item)
@@ -44,11 +45,11 @@ class Spider():
         
     def AddUrls(self, urls):
         for url in urls:
-            self._urls.put(url)
+            if self.Routing(url) == None:
+                continue
+            if url not in self._urls_set:
+                self._urls.put(url)
+                self._urls_set.add(url)
 
-
-class Urls():
-    
-    def __init__(self, urls=None):
-        if urls != None:
-            self.AddUrls(urls)
+                
+            

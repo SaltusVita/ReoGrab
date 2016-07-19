@@ -144,4 +144,4 @@ class HtmlPage(HtmlItem):
         super().__init__(html, base_url)
         if base_url != '':
             self._item.make_links_absolute(base_url)
-        pass
+        self.url = base_url
