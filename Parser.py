@@ -46,8 +46,10 @@ class HtmlItem():
         
     def Text(self, strip=True):
         result = ''.join(self._item.itertext())
-        if strip:
+        if strip == True:
             return result.strip()
+        elif type(strip) == str:
+            return result.strip(strip)
         return result
     
     def Href(self, strip=True):

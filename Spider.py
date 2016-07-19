@@ -14,14 +14,16 @@ from Parser import HtmlPage
 class Spider():
     
     def __init__(self):
+        self.start_urls = None
         self._urls = queue.Queue()
         self._urls_set = set()
     
     def Routing(self, url):
         for route in self.routes:
             if re.match(route['re'], url) != None:
-                if 'skip' not in route:
-                    return route
+                if 'skip' in route and route['skip'] == True:
+                    break
+                return route
         return None
     
     def Download(self, url):
@@ -50,6 +52,6 @@ class Spider():
             if url not in self._urls_set:
                 self._urls.put(url)
                 self._urls_set.add(url)
-
+        pass
                 
             
