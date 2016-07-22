@@ -3,14 +3,19 @@ from Spider import Spider
 
 class AliExpress(Spider):
     
+    cache = 60 * 60 * 24 * 5 # Time cache
+    cache_type = 'sqlite'
+    
     routes = [
                 {
                     'name': 'Category',
-                    're': '[^a]*?aliexpress.com/af/category/.+?|[^a]*?aliexpress.com/category/.+?'
+                    're': '[^a]*?aliexpress.com/af/category/.+?|[^a]*?aliexpress.com/category/.+?',
+                    'max': 10000
                 },
                 {
                     'name': 'Item',
-                    're': '[^a]*?aliexpress.com/item/.+?'
+                    're': '[^a]*?aliexpress.com/item/.+?',
+                    'max': 100000
                 },
                 {
                     'name': 'AllCategory',
@@ -19,9 +24,10 @@ class AliExpress(Spider):
             ]
     
     def Category(self, page):
-        urls = page.Find('#aliGlobalCrumb h1').Text(' \t\r\n>')
+        urls = page.Find('#aliGlobalCrumb h1').Text()
+        urls = urls.replace('.', '').replace('>', '').replace('\r', '')
+        urls = urls.replace('\r', '').replace('\n', '').replace('\t', '').replace('  ', ' ')
         print(urls)
-        #self.add_urls(urls, page.Url)
     
     def Item(self, page):
         item = {}

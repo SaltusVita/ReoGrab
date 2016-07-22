@@ -139,7 +139,8 @@ class HtmlItems():
         for item in self._items:
             result.append(item.Attr(name, strip))
         return result
-    
+
+
 class HtmlPage(HtmlItem):
 
     def __init__(self, html, base_url=''):
@@ -147,3 +148,10 @@ class HtmlPage(HtmlItem):
         if base_url != '':
             self._item.make_links_absolute(base_url)
         self.url = base_url
+
+
+class Str(str):
+    
+    def replace_chars(self, chars, to):
+        pass
+
