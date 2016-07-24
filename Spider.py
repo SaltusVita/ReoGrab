@@ -7,17 +7,18 @@ Created on 7/07/2016
 import urllib.request
 import queue
 import re
+import sqlite3
 
 from Parser import HtmlPage
 
 
 class Spider():
-    
+
     def __init__(self):
         self.start_urls = None
         self._urls = queue.Queue()
         self._urls_set = set()
-    
+
     def Routing(self, url):
         for route in self.routes:
             if re.match(route['re'], url) != None:
@@ -25,12 +26,12 @@ class Spider():
                     break
                 return route
         return None
-    
+
     def Download(self, url):
         request = urllib.request.urlopen(url)
         page = request.read()
         return page.decode('utf-8')
-    
+
     def Save(self, item, category):
         print(item)
 
@@ -44,7 +45,7 @@ class Spider():
             page = HtmlPage(html, url)
             # Call function for parse page
             getattr(self, route['name'])(page)
-        
+
     def AddUrls(self, urls):
         for url in urls:
             if self.Routing(url) == None:
@@ -53,8 +54,10 @@ class Spider():
                 self._urls.put(url)
                 self._urls_set.add(url)
         pass
-                
-                
+
+    def CachePage(self, url, html):
+        pass
+
 class UrlCache:
     
     def __init__(self):
