@@ -8,6 +8,7 @@ import urllib.request
 import queue
 import re
 import sqlite3
+import os.path
 
 from Parser import HtmlPage
 
@@ -15,9 +16,22 @@ from Parser import HtmlPage
 class Spider():
 
     def __init__(self):
-        self.start_urls = None
+        self.InitSqlite()
         self._urls = queue.Queue()
         self._urls_set = set()
+
+    def InitSqlite(self):
+        file = self.__class__.__name__ + '.db'
+        db = sqlite3.connect(file)
+        cur = db.cursor()
+        
+        sql = """CREATE TABLE IF NOT EXISTS tbl_urls
+        ( url text primary key not null, html text, time timestamp);"""
+        cur.execute(sql)
+        
+        
+        cur.close()
+        
 
     def Routing(self, url):
         for route in self.routes:
