@@ -68,8 +68,9 @@ class Spider():
         pass
 
     def CachePage(self, url, html):
-        if self._cursor != None:
-            pass
+        if self._cursor == None:
+            return
+        
 
 
 class UrlCache:
