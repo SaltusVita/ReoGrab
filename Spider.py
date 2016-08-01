@@ -25,8 +25,13 @@ class Spider():
         self._db = sqlite3.connect(file)
         self._cursor = self._db.cursor()
         # Create table
-        sql = """CREATE TABLE IF NOT EXISTS tbl_urls
-        ( url text primary key not null, html text, time timestamp);"""
+        sql = """
+            CREATE TABLE IF NOT EXISTS tbl_urls
+            ( 
+                url text primary key not null, 
+                html text, 
+                time timestamp DEFAULT CURRENT_TIMESTAMP
+            );"""
         self._cursor.execute(sql)
     
     def CloseDB(self):
@@ -54,8 +59,12 @@ class Spider():
         while not self._urls.empty():
             url = self._urls.get()
             route = self.Routing(url)
-            html = self.Download(url)
-            self.CachePage(url, html)
+            cache = self.FindCache(url)
+            if cache == None: 
+                html = self.Download(url)
+                self.CachePage(url, html)
+            else:
+                html = cache[1]
             page = HtmlPage(html, url)
             # Call function for parse page
             getattr(self, route['name'])(page)
@@ -69,12 +78,20 @@ class Spider():
                 self._urls_set.add(url)
         pass
 
+    def FindCache(self, url):
+        if self._cursor == None:
+            return None
+        sql = """SELECT * FROM tbl_urls WHERE url=?;"""
+        self._cursor.execute(sql, (url,))
+        result = self._cursor.fetchone()
+        return result
+
     def CachePage(self, url, html):
         if self._cursor == None:
             return
-        sql = """INSERT OR REPLACE INTO tbl_urls(url, html, time)
-        VALUES (?,?,?);"""
-        params = (url, html, time.time())
+        sql = """INSERT OR REPLACE INTO tbl_urls(url, html)
+        VALUES (?,?);"""
+        params = (url, html)
         self._cursor.execute(sql, params)
         self._db.commit()
 
