@@ -41,4 +41,4 @@ class AliExpress(Spider):
         
 
 bot = AliExpress()
-#bot.Run()
+bot.Run()

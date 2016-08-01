@@ -8,6 +8,7 @@ import urllib.request
 import queue
 import re
 import sqlite3
+import time
 
 from Parser import HtmlPage
 
@@ -20,7 +21,7 @@ class Spider():
         self._urls_set = set()
 
     def InitSqlite(self):
-        file = self.__class__.__name__ + '.db'
+        file = self.__class__.__name__ + '.sqlite'
         self._db = sqlite3.connect(file)
         self._cursor = self._db.cursor()
         # Create table
@@ -54,6 +55,7 @@ class Spider():
             url = self._urls.get()
             route = self.Routing(url)
             html = self.Download(url)
+            self.CachePage(url, html)
             page = HtmlPage(html, url)
             # Call function for parse page
             getattr(self, route['name'])(page)
@@ -70,7 +72,11 @@ class Spider():
     def CachePage(self, url, html):
         if self._cursor == None:
             return
-        
+        sql = """INSERT OR REPLACE INTO tbl_urls(url, html, time)
+        VALUES (?,?,?);"""
+        params = (url, html, time.time())
+        self._cursor.execute(sql, params)
+        self._db.commit()
 
 
 class UrlCache:
