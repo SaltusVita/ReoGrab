@@ -19,6 +19,7 @@ class Spider():
         self.InitSqlite()
         self._urls = queue.Queue()
         self._urls_set = set()
+        self.stats = False
 
     def InitSqlite(self):
         file = self.__class__.__name__ + '.sqlite'
@@ -68,10 +69,19 @@ class Spider():
             page = HtmlPage(html, url)
             # Call function for parse page
             getattr(self, route['name'])(page)
+            if self.stats:
+                self.ViewStats()
+        pass
+    
+    def ViewStats(self):
+        print(self._urls.qsize())
 
     def AddUrls(self, urls):
         for url in urls:
-            if self.Routing(url) == None:
+            route = self.Routing(url)
+            if route == None:
+                continue
+            if 'Skip' in route:
                 continue
             if url not in self._urls_set:
                 self._urls.put(url)
