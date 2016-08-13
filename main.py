@@ -12,11 +12,11 @@ import pycurl
 
 # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
 # the libcurl tutorial for more info.
-try:
-    import signal
-    signal.signal(signal.SIGPIPE, signal.SIG_IGN)
-except ImportError:
-    pass
+#try:
+#    import signal
+#    signal.signal(signal.SIGPIPE, signal.SIG_IGN)
+#except ImportError:
+#    pass
 
 
 # Get args
@@ -74,7 +74,8 @@ for i in range(num_conn):
     m.handles.append(c)
 
 def WriteFunc(buf):
-    print(buf)
+    #print(len(buf))
+    pass
 
 # Main loop
 freelist = m.handles[:]
@@ -106,8 +107,8 @@ while num_processed < num_urls:
             print("Success:", c.filename, c.url, c.getinfo(pycurl.EFFECTIVE_URL))
             freelist.append(c)
         for c, errno, errmsg in err_list:
-            c.fp.close()
-            c.fp = None
+            #c.fp.close()
+            #c.fp = None
             m.remove_handle(c)
             print("Failed: ", c.filename, c.url, errno, errmsg)
             freelist.append(c)
@@ -117,7 +118,7 @@ while num_processed < num_urls:
     # Currently no more I/O is pending, could do something in the meantime
     # (display a progress bar, etc.).
     # We just call select() to sleep until some more data is available.
-    m.select(1.0)
+    m.select(10.0)
 
 
 # Cleanup
