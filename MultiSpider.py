@@ -14,8 +14,8 @@ class MultiSpider:
 
     def __init__(self, params=None):
         urls = []
-        for i in range(20):
-            urls.append('http://lyubertsy.tehnosila.ru/catalog/tehnika_dlya_kuhni/obrabotka_produktov?p={0}'.format(i)) 
+        for i in range(100):
+            urls.append('http://ru.aliexpress.com/category/202005148/dresses/{0}.html'.format(i)) 
         self.max_conn = 10
         self.urls = UrlRoute()
         self.urls.AddUrls(urls)
@@ -31,7 +31,8 @@ class MultiSpider:
     
         freelist = m.handles[:]
         num_processed = 0
-        while num_processed < self.urls.Counts():
+        counts_urls = self.urls.Counts()
+        while num_processed < counts_urls:
             while not self.urls.Empty() and freelist:
                 url = self.urls.Get()
                 c = freelist.pop()
@@ -49,9 +50,9 @@ class MultiSpider:
                 for c in ok_list:
                     m.remove_handle(c)
                     data = c.stream.getvalue()
-                    c.stream = BytesIO()
-                    #print('Lenght: {0}'.format(len(data)))
-                    print("Success:", c.url, c.getinfo(pycurl.EFFECTIVE_URL))
+                    #c.stream = BytesIO()
+                    #print(''.format())
+                    print("Lenght: {0}, Url: {1}".format(len(data), c.url), c.getinfo(pycurl.EFFECTIVE_URL))
                     freelist.append(c)
                     good += 1
                 for c, errno, errmsg in err_list:
@@ -73,6 +74,7 @@ class MultiSpider:
         c.setopt(pycurl.CONNECTTIMEOUT, 30)
         c.setopt(pycurl.TIMEOUT, 300)
         c.setopt(pycurl.NOSIGNAL, 1)
+        c.setopt(pycurl.SSL_VERIFYPEER, False)
         return c
 
 
@@ -108,7 +110,7 @@ class UrlRoute:
         return None
     
     def Counts(self):
-        return self._urls.qsize()
+        return self._urls._qsize()
 
     def Empty(self):
         return self._urls.empty()
