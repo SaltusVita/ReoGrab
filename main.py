@@ -20,8 +20,10 @@ class FlRu(MultiSpider):
              ]
 
     def Catalog(self, page):
-        pass
+        print(page.status_code)
+        print(page.headers)
 
 
 bot = FlRu()
 bot.Run()
+

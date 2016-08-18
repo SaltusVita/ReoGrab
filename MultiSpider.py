@@ -8,6 +8,8 @@ import re
 from io import BytesIO
 
 import pycurl
+from docutils.nodes import Body
+from pip import status_codes
  
 
 class MultiSpider:
@@ -26,12 +28,19 @@ class MultiSpider:
         self.max_conn = 1
         if hasattr(self, 'start_urls'):
             self.AddUrls(self.start_urls)
+        if hasattr(self, 'routes'):
+            self.AddRoutes(self.routes)
 
     def AddUrls(self, urls):
-        if not hasattr(self, '_urls'):
+        if not hasattr(self, 'urls'):
             self.urls = UrlRoute()
         self.urls.AddUrls(urls)
-    
+
+    def AddRoutes(self, routes):
+        if not hasattr(self, 'urls'):
+            self.urls = UrlRoute()
+        self.urls.AddRoutes(routes)
+
     def Debug(self, debug_type, debug_msg):
         print("Debug({0}): {1}".format(debug_type, debug_msg))
 
@@ -59,12 +68,7 @@ class MultiSpider:
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
                     m.remove_handle(c)
-                    data = c.body_io.getvalue()
-                    headers = c.headers_io.getvalue()
-                    route = self.urls.Route(c.url)
-                    print(route)
-                    print(c.getinfo(pycurl.INFO_COOKIELIST))
-                    #print("Lenght: {0}, Url: {1}".format(len(data), c.url), c.getinfo(pycurl.EFFECTIVE_URL))
+                    self.CallFunction(c)
                     freelist.append(c)
                 for c, errno, errmsg in err_list:
                     m.remove_handle(c)
@@ -74,6 +78,28 @@ class MultiSpider:
                 if num_q == 0:
                     break
             m.select(30.0)
+
+    def CallFunction(self, c):
+        # Get headers and body
+        data = c.body_io.getvalue()
+        headers = c.headers_io.getvalue()
+        status_code = c.getinfo(pycurl.HTTP_CODE)
+        # Clear streams from headers and body
+        c.body_io = self.TruncateIO(c.body_io)
+        c.headers_io = self.TruncateIO(c.headers_io)
+        # Call route function for doing work
+        route = self.urls.Route(c.url)
+        if 'name' in route and hasattr(self, route['name']):
+            page = Page(data, headers, status_code)
+            getattr(self, route['name'])(page)
+            
+        #print(c.getinfo(pycurl.INFO_COOKIELIST))
+        #print("Lenght: {0}, Url: {1}".format(len(data), c.url), c.getinfo(pycurl.EFFECTIVE_URL))
+
+    def TruncateIO(self, sio):
+        sio.truncate(0)
+        sio.seek(0)
+        return sio
 
     def InitCurl(self):
         c = pycurl.Curl()
@@ -144,7 +170,14 @@ class UrlRoute:
 
 
 class Page:
-    pass
+    
+    def __init__(self, body=None, headers=None, status_code=None):
+        if body:
+            self.body = body
+        if headers:
+            self.headers = headers
+        if status_code:
+            self.status_code = status_code
 
 
 
