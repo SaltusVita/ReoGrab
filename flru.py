@@ -6,7 +6,6 @@ Created on 1 ���. 2016 �.
 from Spider import Spider
 
 class FlRu(Spider):
-    
     routes = [
                 {
                     'name': 'Catalog',
@@ -16,7 +15,7 @@ class FlRu(Spider):
                     'name': 'User',
                     're': '[^f]*?fl.ru/users*?'
                 },
-             ]
+              ]
     start_urls = ['https://www.fl.ru/freelancers/']
     
     def Catalog(self, page):
