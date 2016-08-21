@@ -6,12 +6,13 @@ from MultiSpider import MultiSpider
 
 
 class FlRu(MultiSpider):
-    max_conn = 1
-    start_urls = ['https://www.fl.ru/freelancers/']
+    max_conn = 50
+    start_urls = ['http://lenta.ru/',]
     routes = [
                 {
                     'name': 'Catalog',
-                    're': '[^f]*?fl.ru/freelancers.*?'
+                    #'re': '[^f]*?fl.ru/freelancers.*?'
+                    're': '.*?'
                 },
                 {
                     'name': 'User',
@@ -21,7 +22,9 @@ class FlRu(MultiSpider):
 
     def Catalog(self, page):
         print(page.status_code)
-        print(page.headers)
+        
+        urls = page.FindAll('.item img').Src()
+        self.AddUrls(urls)
 
 
 bot = FlRu()

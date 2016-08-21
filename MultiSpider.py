@@ -8,24 +8,16 @@ import re
 from io import BytesIO
 
 import pycurl
-from docutils.nodes import Body
-from pip import status_codes
- 
+import chardet
+from email.base64mime import body_encode
+
+import Parser
 
 class MultiSpider:
 
     def __init__(self, params=None):
-        """
-        urls = []
-        for i in range(17613021513, 17613021513 + 100):
-            #urls.append('http://ru.aliexpress.com/category/202005148/dresses/{0}.html'.format(i)) 
-            #urls.append('http://glasscannon.ru/page/{0}/'.format(i))
-            urls.append('http://eu.battle.net/d3/ru/forum/topic/{0}'.format(i))
-        self.max_conn = 2
-        self.urls = UrlRoute()
-        self.urls.AddUrls(urls)
-        """
-        self.max_conn = 1
+        if not hasattr(self, 'max_conn'):
+            self.max_conn = 1
         if hasattr(self, 'start_urls'):
             self.AddUrls(self.start_urls)
         if hasattr(self, 'routes'):
@@ -52,13 +44,11 @@ class MultiSpider:
             m.handles.append(c)
         freelist = m.handles[:]
         num_processed = 0
-        counts_urls = self.urls.Counts()
-        while num_processed < counts_urls:
+        while num_processed < self.urls.Counts():
             while not self.urls.Empty() and freelist:
-                url = self.urls.Get()
                 c = freelist.pop()
-                c.url = url
-                c.setopt(pycurl.URL, url)
+                c.url = self.urls.Get()
+                c.setopt(pycurl.URL, c.url)
                 m.add_handle(c)
             while 1:
                 ret, num_handles = m.perform()
@@ -68,6 +58,7 @@ class MultiSpider:
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
                     m.remove_handle(c)
+                    print(c.getinfo(c.EFFECTIVE_URL))
                     self.CallFunction(c)
                     freelist.append(c)
                 for c, errno, errmsg in err_list:
@@ -80,21 +71,20 @@ class MultiSpider:
             m.select(30.0)
 
     def CallFunction(self, c):
+        print(c.getinfo(pycurl.CONTENT_TYPE))
         # Get headers and body
         data = c.body_io.getvalue()
         headers = c.headers_io.getvalue()
         status_code = c.getinfo(pycurl.HTTP_CODE)
+        effective_url = c.getinfo(c.EFFECTIVE_URL)
         # Clear streams from headers and body
         c.body_io = self.TruncateIO(c.body_io)
         c.headers_io = self.TruncateIO(c.headers_io)
         # Call route function for doing work
         route = self.urls.Route(c.url)
         if 'name' in route and hasattr(self, route['name']):
-            page = Page(data, headers, status_code)
+            page = HtmlPage(effective_url, data, headers, status_code)
             getattr(self, route['name'])(page)
-            
-        #print(c.getinfo(pycurl.INFO_COOKIELIST))
-        #print("Lenght: {0}, Url: {1}".format(len(data), c.url), c.getinfo(pycurl.EFFECTIVE_URL))
 
     def TruncateIO(self, sio):
         sio.truncate(0)
@@ -114,7 +104,6 @@ class MultiSpider:
         c.setopt(pycurl.NOSIGNAL, 1)
         c.setopt(pycurl.SSL_VERIFYPEER, False)
         c.setopt(pycurl.TCP_NODELAY, 1)
-        #c.setopt(pycurl.DNS_USE_GLOBAL_CACHE, 1)
         c.setopt(pycurl.USERAGENT, self.RandomUserAgent())
         c.setopt(pycurl.ENCODING, 'gzip, deflate')
         c.setopt(pycurl.COOKIEJAR, 'cookies.txt')
@@ -163,21 +152,33 @@ class UrlRoute:
         return None
     
     def Counts(self):
-        return self._urls._qsize()
+        return len(self._urls_set)
 
     def Empty(self):
         return self._urls.empty()
 
 
-class Page:
-    
-    def __init__(self, body=None, headers=None, status_code=None):
-        if body:
-            self.body = body
+class HtmlPage(Parser.HtmlItem):
+
+    def __init__(self, base_url=None, body=None, headers=None, status_code=None):
+        body_enc = None
         if headers:
-            self.headers = headers
+            self.headers = headers.decode()
+            m = re.search('charset=([a-z 0-9\-]+)', self.headers, re.IGNORECASE)
+            if m:
+                body_enc = m.group(1)
+        if body:
+            if body_enc is None:
+                print('chardet')
+                body_enc =  chardet.detect(body)['encoding']
+            self.body = body.decode(body_enc)
+            print(body_enc)
         if status_code:
             self.status_code = status_code
+        super().__init__(self.body, base_url)
+        if base_url != '':
+            self._item.make_links_absolute(base_url)
+        self.url = base_url
 
 
 
