@@ -58,7 +58,7 @@ class MultiSpider:
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
                     m.remove_handle(c)
-                    print(c.getinfo(c.EFFECTIVE_URL))
+                    #print(c.getinfo(c.EFFECTIVE_URL))
                     self.CallFunction(c)
                     freelist.append(c)
                 for c, errno, errmsg in err_list:
@@ -179,6 +179,3 @@ class HtmlPage(Parser.HtmlItem):
         if base_url != '':
             self._item.make_links_absolute(base_url)
         self.url = base_url
-
-
-
