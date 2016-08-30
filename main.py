@@ -7,7 +7,10 @@ from MultiSpider import MultiSpider
 
 class FlRu(MultiSpider):
     max_conn = 50
-    start_urls = ['http://lenta.ru/',]
+    start_urls = ['http://lenta.ru/',
+                  'http://www.esreality.com/post/2740487/re-omg-ctf-server-s/',
+                  'https://forums.anandtech.com/threads/omg-hot-quake-4-special-dvd-edition-34-90.1729658/',
+                  'http://goodgame.ru/creative/659/']
     routes = [
                 {
                     'name': 'Catalog',
@@ -21,10 +24,10 @@ class FlRu(MultiSpider):
              ]
 
     def Catalog(self, page):
-        print(page.status_code)
-        
-        urls = page.FindAll('.item img').Src()
-        self.AddUrls(urls)
+        a = page.html
+        pass
+        ##urls = page.FindAll('.item a').Src()
+        #self.AddUrls(urls)
 
 
 bot = FlRu()

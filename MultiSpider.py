@@ -58,7 +58,6 @@ class MultiSpider:
                 num_q, ok_list, err_list = m.info_read()
                 for c in ok_list:
                     m.remove_handle(c)
-                    #print(c.getinfo(c.EFFECTIVE_URL))
                     self.CallFunction(c)
                     freelist.append(c)
                 for c, errno, errmsg in err_list:
@@ -71,20 +70,28 @@ class MultiSpider:
             m.select(30.0)
 
     def CallFunction(self, c):
-        print(c.getinfo(pycurl.CONTENT_TYPE))
-        # Get headers and body
-        data = c.body_io.getvalue()
-        headers = c.headers_io.getvalue()
-        status_code = c.getinfo(pycurl.HTTP_CODE)
-        effective_url = c.getinfo(c.EFFECTIVE_URL)
-        # Clear streams from headers and body
-        c.body_io = self.TruncateIO(c.body_io)
-        c.headers_io = self.TruncateIO(c.headers_io)
-        # Call route function for doing work
         route = self.urls.Route(c.url)
         if 'name' in route and hasattr(self, route['name']):
-            page = HtmlPage(effective_url, data, headers, status_code)
-            getattr(self, route['name'])(page)
+            c = Request(c)
+            getattr(self, route['name'])(c)
+        """
+        content_type = c.getinfo(pycurl.CONTENT_TYPE)
+        if content_type.find('text/html') != -1:
+            print(content_type)
+            # Get headers and body
+            data = c.body_io.getvalue()
+            headers = c.headers_io.getvalue()
+            status_code = c.getinfo(pycurl.HTTP_CODE)
+            effective_url = c.getinfo(c.EFFECTIVE_URL)
+            # Clear streams from headers and body
+            c.body_io = self.TruncateIO(c.body_io)
+            c.headers_io = self.TruncateIO(c.headers_io)
+            # Call route function for doing work
+            route = self.urls.Route(c.url)
+            if 'name' in route and hasattr(self, route['name']):
+                page = Request(effective_url, data, headers, status_code)
+                getattr(self, route['name'])(page)
+        """
 
     def TruncateIO(self, sio):
         sio.truncate(0)
@@ -158,9 +165,61 @@ class UrlRoute:
         return self._urls.empty()
 
 
-class HtmlPage(Parser.HtmlItem):
+class Request:
+    HTTP_ENCODING = 'iso-8859-1'
 
-    def __init__(self, base_url=None, body=None, headers=None, status_code=None):
+    def __init__(self, c):
+        self.c = c
+        self.raw_body = c.body_io.getvalue()
+        self.raw_headers = c.headers_io.getvalue()
+        #c.body_io = self.TruncateIO(c.body_io)
+        #c.headers_io = self.TruncateIO(c.headers_io)
+ 
+    #def TruncateIO(self, sio):
+    #    sio.truncate(0)
+    #    sio.seek(0)
+    #    return sio
+
+    @property
+    def code(self):
+        return self.c.getinfo(pycurl.HTTP_CODE)
+    
+    @property
+    def url(self):
+        return self.c.getinfo(pycurl.EFFECTIVE_URL)
+    
+    def Save(self, file):
+        with open(file, 'br+') as f:
+            f.write(self.raw_body)
+
+    def IsHtml(self):
+        if not hasattr(self, 'content_type'):
+            self.content_type = self.c.getinfo(pycurl.CONTENT_TYPE)
+        if self.content_type.find('text/html') != -1:
+            return True
+        return False
+    
+    @property
+    def html(self):
+        if hasattr(self, '_html'):
+            return self._html
+        headers = self.raw_headers.decode(self.HTTP_ENCODING)
+        print(headers)
+        body_enc = None
+        m = re.search('charset=([a-z 0-9\-\_]+)', headers, re.IGNORECASE)
+        if m:
+            body_enc = m.group(1)
+        if body_enc is None:
+            body_enc =  chardet.detect(self.raw_body)['encoding']
+        print('Encode: ' + body_enc)
+        print('------------------009999999999999----------------')
+        self._html = self.raw_body.decode(body_enc)
+        return self._html
+    
+
+    # TODO: Delete this function
+    def Something(self, base_url=None, body=None, headers=None, status_code=None):
+        
         body_enc = None
         if headers:
             self.headers = headers.decode()
