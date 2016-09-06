@@ -1,35 +1,15 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-# vi:ts=4:et
+'''
+Created on 5 сент. 2016 г.
 
-from MultiSpider import MultiSpider
+@author: garet
+'''
 
+from urllib.parse import urlparse
 
-class FlRu(MultiSpider):
-    max_conn = 50
-    start_urls = ['http://lenta.ru/',
-                  'http://www.esreality.com/post/2740487/re-omg-ctf-server-s/',
-                  'https://forums.anandtech.com/threads/omg-hot-quake-4-special-dvd-edition-34-90.1729658/',
-                  'http://goodgame.ru/creative/659/']
-    routes = [
-                {
-                    'name': 'Catalog',
-                    #'re': '[^f]*?fl.ru/freelancers.*?'
-                    're': '.*?'
-                },
-                {
-                    'name': 'User',
-                    're': '[^f]*?fl.ru/users*?'
-                },
-             ]
+def Programm():
+    url = 'https://docs.python.org/3.5/library/urllib.parse.html?highlight=urlparse#urllib.parse.urlparse'
+    data = urlparse(url)
+    print(data)
 
-    def Catalog(self, page):
-        a = page.html
-        pass
-        ##urls = page.FindAll('.item a').Src()
-        #self.AddUrls(urls)
-
-
-bot = FlRu()
-bot.Run()
-
+if __name__ == '__main__':
+    Programm()
