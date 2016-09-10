@@ -34,7 +34,7 @@ class Spider():
                 time timestamp DEFAULT CURRENT_TIMESTAMP
             );"""
         self._cursor.execute(sql)
-    
+
     def CloseDB(self):
         self._cursor.close()
 
@@ -72,7 +72,7 @@ class Spider():
             if self.stats:
                 self.ViewStats()
         pass
-    
+
     def ViewStats(self):
         print(self._urls.qsize())
 
@@ -104,28 +104,4 @@ class Spider():
         params = (url, html)
         self._cursor.execute(sql, params)
         self._db.commit()
-
-
-class UrlCache:
-    
-    def __init__(self):
-        self._urls = queue.Queue()
-        self._urls_set = set()
-    
-    def Add(self, urls, html='', params=None):
-        type_urls = type(urls)
-        if type_urls == str:
-            self.AddUniq(urls, html, params)
-        elif type_urls == list:
-            for url in urls:
-                self.AddUniq(url, html, params)
-        pass
-    
-    def AddUniq(self, url, html='', params=None):
-        if url not in self._urls:
-            self._urls.put(url)
-            self._urls_set.add(url)
-    
-    def Get(self, url):
-        pass
 

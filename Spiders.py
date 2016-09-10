@@ -4,19 +4,32 @@ Created on 2 сент. 2016 г.
 @author: garet
 '''
 
+import urllib.request
 import queue
 import sqlite3
+import re
+
 
 class BaseSpider():
     
     def __init__(self):
-        pass
+        self.urls = QueueUrls()
 
     def AddUrls(self, urls):
+        self.urls.AddUrls(urls)
+
+    def AddRoutes(self, routes):
         pass
 
-    def Routing(self, url):
-        pass
+    def FetchRoute(self, url):
+        if not hasattr(self, 'routes'):
+            return
+        for route in self.routes:
+            if re.match(route['re'], url) != None:
+                if 'skip' in route and route['skip'] == True:
+                    break
+                return route
+        return None
 
     def SaveCache(self, url, data=None):
         pass
@@ -25,7 +38,33 @@ class BaseSpider():
         pass
 
     def Run(self):
+        self.Init()
+        self.Work()
+        self.Clear()
+
+    def Init(self):
+        if hasattr(self, 'start_urls'):
+            self.AddUrls(self.start_urls)
+        if hasattr(self, 'routes'):
+            self.AddRoutes(self.routes)
+
+    def Work(self):
+        while self.urls.Has():
+            url = self.urls.GetUrl()
+            route = self.FetchRoute(url)
+            if route is not None:
+                pass
+            response = self.GetPage(url)
+            print(response)
         pass
+
+    def Clear(self):
+        pass
+
+    def GetPage(self, url):
+        request = urllib.request.urlopen(url)
+        page = request.read()
+        return page.decode('utf-8')
 
 
 class QueueUrls():
@@ -48,6 +87,14 @@ class QueueUrls():
 
     def GetUrl(self):
         return self._urls_queue.get()
+    
+    def __len__(self):
+        return len(self._urls_set)
+
+    def Has(self):
+        if len(self) > 0:
+            return True
+        return False
 
 
 class SqliteCache():
@@ -85,6 +132,10 @@ class SqliteCache():
         self._db.commit()
 
 
+class Route:
 
+    def __init__(self):
+        pass
+    
 
 
