@@ -10,7 +10,7 @@ import sqlite3
 import re
 
 
-class BaseSpider():
+class BaseSpider:
     
     def __init__(self):
         self.urls = QueueUrls()
@@ -49,19 +49,19 @@ class BaseSpider():
             self.add_routes(self.routes)
 
     def work(self):
-        while self.urls.has():
+        while not self.urls.empty():
             url = self.urls.get_url()
             route = self.fetch_route(url)
             if route is not None:
                 pass
             response = self.get_page(url)
-            print(response)
         pass
 
     def clear(self):
         pass
 
-    def get_page(self, url):
+    @staticmethod
+    def get_page(url):
         request = urllib.request.urlopen(url)
         page = request.read()
         return page.decode('utf-8')
@@ -73,12 +73,18 @@ class QueueUrls:
         self._urls_queue = queue.Queue()
         self._urls_set = set()
 
+    def add_url(self, url):
+        if url not in self._urls_set:
+            self._urls_queue.put(url)
+            self._urls_set.add(url)
+
     def add_urls(self, urls):
+        urls_type = type(urls)
+        if urls_type is str:
+            self.add_url(urls)
+            return
         for url in urls:
-            if url not in self._urls_set:
-                self._urls_queue.put(url)
-                self._urls_set.add(url)
-        pass
+            self.add_url(url)
 
     def exist_url(self, url):
         if url in self._urls_set:
@@ -87,17 +93,12 @@ class QueueUrls:
 
     def get_url(self):
         return self._urls_queue.get()
-    
-    def __len__(self):
-        return len(self._urls_set)
 
-    def has(self):
-        if len(self) > 0:
-            return True
-        return False
+    def empty(self):
+        return self._urls_queue.empty()
 
 
-class SqliteCache():
+class SqliteCache:
 
     def __init__(self, db_name):
         self.db_name = db_name
