@@ -15,83 +15,83 @@ class BaseSpider():
     def __init__(self):
         self.urls = QueueUrls()
 
-    def AddUrls(self, urls):
-        self.urls.AddUrls(urls)
+    def add_urls(self, urls):
+        self.urls.add_urls(urls)
 
-    def AddRoutes(self, routes):
+    def add_routes(self, routes):
         pass
 
-    def FetchRoute(self, url):
+    def fetch_route(self, url):
         if not hasattr(self, 'routes'):
             return
         for route in self.routes:
-            if re.match(route['re'], url) != None:
-                if 'skip' in route and route['skip'] == True:
+            if re.match(route['re'], url) is not None:
+                if 'skip' in route and route['skip'] is True:
                     break
                 return route
         return None
 
-    def SaveCache(self, url, data=None):
+    def save_cache(self, url, data=None):
         pass
 
-    def GetCache(self, url):
+    def get_cache(self, url):
         pass
 
-    def Run(self):
-        self.Init()
-        self.Work()
-        self.Clear()
+    def run(self):
+        self.init()
+        self.work()
+        self.clear()
 
-    def Init(self):
+    def init(self):
         if hasattr(self, 'start_urls'):
-            self.AddUrls(self.start_urls)
+            self.add_urls(self.start_urls)
         if hasattr(self, 'routes'):
-            self.AddRoutes(self.routes)
+            self.add_routes(self.routes)
 
-    def Work(self):
-        while self.urls.Has():
-            url = self.urls.GetUrl()
-            route = self.FetchRoute(url)
+    def work(self):
+        while self.urls.has():
+            url = self.urls.get_url()
+            route = self.fetch_route(url)
             if route is not None:
                 pass
-            response = self.GetPage(url)
+            response = self.get_page(url)
             print(response)
         pass
 
-    def Clear(self):
+    def clear(self):
         pass
 
-    def GetPage(self, url):
+    def get_page(self, url):
         request = urllib.request.urlopen(url)
         page = request.read()
         return page.decode('utf-8')
 
 
-class QueueUrls():
+class QueueUrls:
 
     def __init__(self):
         self._urls_queue = queue.Queue()
         self._urls_set = set()
 
-    def AddUrls(self, urls):
+    def add_urls(self, urls):
         for url in urls:
             if url not in self._urls_set:
                 self._urls_queue.put(url)
                 self._urls_set.add(url)
         pass
 
-    def ExistUrl(self, url):
+    def exist_url(self, url):
         if url in self._urls_set:
             return True
         return False
 
-    def GetUrl(self):
+    def get_url(self):
         return self._urls_queue.get()
     
     def __len__(self):
         return len(self._urls_set)
 
-    def Has(self):
+    def has(self):
         if len(self) > 0:
             return True
         return False
@@ -101,8 +101,9 @@ class SqliteCache():
 
     def __init__(self, db_name):
         self.db_name = db_name
+        self.init_db()
 
-    def InitDB(self):
+    def init_db(self):
         file = self.db_name + '.sqlite'
         self._db = sqlite3.connect(file)
         self._cursor = self._db.cursor()
@@ -116,26 +117,18 @@ class SqliteCache():
             );"""
         self._cursor.execute(sql)
 
-    def Get(self, url):
-        if self._cursor == None:
+    def get(self, url):
+        if self._cursor is None:
             self.InitDB()
-        sql = """SELECT * FROM tbl_urls WHERE url=?;"""
+        sql = "SELECT * FROM tbl_urls WHERE url=?;"
         self._cursor.execute(sql, (url,))
         return self._cursor.fetchone()
 
-    def Set(self, url, data):
-        if self._cursor == None:
-            self.InitDB()
-        sql = """INSERT OR REPLACE INTO tbl_urls(url, html)
-        VALUES (?,?);"""
-        self._cursor.execute(sql, (url, data) )
+    def set(self, url, data):
+        if self._cursor is None:
+            self.init_db()
+        sql = "INSERT OR REPLACE INTO tbl_urls(url,html) VALUES (?,?);"
+        self._cursor.execute(sql, (url, data))
         self._db.commit()
-
-
-class Route:
-
-    def __init__(self):
-        pass
-    
 
 
