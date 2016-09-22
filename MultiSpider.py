@@ -229,7 +229,7 @@ class Request:
         if body:
             if body_enc is None:
                 print('chardet')
-                body_enc =  chardet.detect(body)['encoding']
+                body_enc = chardet.detect(body)['encoding']
             self.body = body.decode(body_enc)
             print(body_enc)
         if status_code:

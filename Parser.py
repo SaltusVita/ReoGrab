@@ -17,7 +17,7 @@ class HtmlItem():
             self._item = item
         elif item_type is HtmlItem:
             self = item # TODO: Переделать!
-        elif item_type == None:
+        elif item_type is None:
             self._item = lxml.html.HtmlElement()
 
     def TypeFind(self, s:str):

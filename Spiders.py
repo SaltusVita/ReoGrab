@@ -8,7 +8,9 @@ import urllib.request
 import queue
 import sqlite3
 import re
+from urllib.parse import urlparse
 
+from Parser import HtmlPage
 
 class BaseSpider:
     
@@ -51,20 +53,18 @@ class BaseSpider:
     def work(self):
         while not self.urls.empty():
             url = self.urls.get_url()
-            route = self.fetch_route(url)
-            if route is not None:
-                pass
             response = self.get_page(url)
-        pass
-
-    def clear(self):
+            route = self.fetch_route(url)
+            if route is None:
+                continue
+            if 'name' in route and hasattr(self, route['name']):
+                getattr(self, route['name'])(response)
         pass
 
     @staticmethod
     def get_page(url):
-        request = urllib.request.urlopen(url)
-        page = request.read()
-        return page.decode('utf-8')
+        r = urllib.request.urlopen(url)
+        return Response(r)
 
 
 class QueueUrls:
@@ -74,6 +74,8 @@ class QueueUrls:
         self._urls_set = set()
 
     def add_url(self, url):
+        u = urlparse(url)
+        url = u[0] + '://' + u[1] + u[2] + u[3]
         if url not in self._urls_set:
             self._urls_queue.put(url)
             self._urls_set.add(url)
@@ -131,5 +133,42 @@ class SqliteCache:
         sql = "INSERT OR REPLACE INTO tbl_urls(url,html) VALUES (?,?);"
         self._cursor.execute(sql, (url, data))
         self._db.commit()
+
+
+class Request:
+
+    def __init__(self):
+        self.method = 'GET'
+        self.user_agent = self.random_user_agent()
+
+    @staticmethod
+    def random_user_agent(self, browser=None, os=None):
+        return 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 8.0; WOW64; Trident/5.0; .NET CLR 2.7.40781; .NET4.0E; en-SG)'
+
+
+class Response:
+
+    def __init__(self, res):
+        self._response = res
+        self.code = res.getcode()
+        self.headers = res.getheaders()
+        self.data = res.read()
+        self.url = res.geturl()
+
+    def charset(self):
+        encode = 'UTF-8'
+        if hasattr(self.headers, 'Content-Type'):
+            m = re.search('charset=([a-z 0-9\-\_]+)', self.headers, re.IGNORECASE)
+            if m:
+                encode = m.group(1)
+        return encode
+
+    @property
+    def html(self):
+        encode = self.charset()
+        return self.data.decode(encode)
+
+    def parser(self):
+        return HtmlPage(self.html, self.url)
 
 
