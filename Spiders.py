@@ -68,6 +68,8 @@ class BaseSpider:
             route = self.fetch_route(url)
             if route is None:
                 continue
+            if 'type' in route and hasattr(self, route['type']):
+                pass
             if 'name' in route and hasattr(self, route['name']):
                 getattr(self, route['name'])(response)
         pass
