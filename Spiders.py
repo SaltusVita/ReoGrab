@@ -12,9 +12,9 @@ import json
 from urllib.parse import urlparse
 
 from Parser import HtmlPage
+import lxml
 
 class BaseSpider:
-    
     def __init__(self):
         self.urls = QueueUrls()
         self.cache = SqliteCache('some_db')
@@ -27,8 +27,10 @@ class BaseSpider:
         for url in urls:
             if self.fetch_route(url) is not None:
                 result.append(url)
-        #print(result)
         self.add_urls(result)
+
+    def add_route(self, route):
+        self.routes.append(route)
 
     def add_routes(self, routes):
         pass
@@ -53,7 +55,7 @@ class BaseSpider:
     def run(self):
         self.init()
         self.work()
-        #self.clear()
+        # self.clear()
 
     def init(self):
         if hasattr(self, 'start_urls'):
@@ -68,11 +70,19 @@ class BaseSpider:
             route = self.fetch_route(url)
             if route is None:
                 continue
-            if 'type' in route and hasattr(self, route['type']):
-                pass
+            if 'type' in route and route['type'] == 'sitemap':
+                urls = self.sitemap(response)
+                self.add_urls_routed(urls)
+                continue
             if 'name' in route and hasattr(self, route['name']):
                 getattr(self, route['name'])(response)
         pass
+
+    def sitemap(self, data):
+        sitemap_text = data.text.replace('<?xml version="1.0" encoding="UTF-8"?>', '')
+        doc = lxml.etree.XML(sitemap_text)
+        ns = {"d": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+        return doc.xpath("//d:loc/text()", namespaces=ns)
 
     def charset(self, headers):
         encode = 'UTF-8'
@@ -114,7 +124,6 @@ class BaseSpider:
 
 
 class QueueUrls:
-
     def __init__(self):
         self._urls_queue = queue.Queue()
         self._urls_set = set()
@@ -149,7 +158,6 @@ class QueueUrls:
 
 
 class SqliteCache:
-
     def __init__(self, db_name):
         self.db_name = db_name
         self.init_db()
@@ -194,7 +202,6 @@ class SqliteCache:
 
 
 class Download:
-
     def __init__(self):
         self.method = 'GET'
         self.user_agent = self.random_user_agent()
@@ -210,11 +217,10 @@ class Download:
         headers = r.getheaders()
         data = r.read()
         url = r.geturl()
-        #return Response(r)
+        # return Response(r)
 
 
 class Response:
-
     def __init__(self, res):
         self.code = res['code']
         self.headers = res['headers']
@@ -230,11 +236,9 @@ class Response:
         return encode
 
     @property
-    def html(self):
+    def text(self):
         encode = self.charset()
         return self.data.decode(encode)
 
     def parser(self):
         return HtmlPage(self.html, self.url)
-
-

@@ -2,16 +2,21 @@ from Spiders import BaseSpider
 
 
 class LubidomRu(BaseSpider):
-
     start_urls = 'https://lubidom.ru/sitemap.xml'
     routes = [
         {
-            'name': 'sitemap',
-            're': '[^f]*?lubidom.ru/sitemap.xml',
+            're': '.*?lubidom.ru/sitemap.xml',
             'type': 'sitemap',
+        },
+        {
+            'name': 'page',
+            're': '.*',
         },
     ]
 
+    def page(self, request):
+        pass
+"""
     def sitemap(self, request):
         p = request.parser()
         links = p.FindAll('a').Href()
@@ -31,7 +36,7 @@ class LubidomRu(BaseSpider):
         p = request.parser()
         links = p.FindAll('a').Href()
         self.add_urls_routed(links)
-
+"""
 
 bot = LubidomRu()
 bot.run()
